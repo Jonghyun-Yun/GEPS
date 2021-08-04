@@ -24,6 +24,7 @@ int main(int argc, const char * argv[])
 	double **sample_varphi, *sum_varphi, *var_varphi;
 	double var_fix, avg_fix, *var_ran, *avg_ran, avg_beta, var_beta;
 
+// # CPUs
 	MM = atoi(argv[1]);
 
 	// Set Random Seed

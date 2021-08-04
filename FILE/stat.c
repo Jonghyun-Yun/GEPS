@@ -514,12 +514,12 @@ double dlognorm(double x, double mu, double sigma)
 {
 	double pi = 3.14159265;
 	double dens, temp;
-	
+
 	temp = (-1.0 / (2 * sigma * sigma)) * ((x - mu) * (x - mu));
 	dens = (1 / (sqrt(2 * pi) * sigma)) * exp(temp);
 
 	return log(dens);
-	
+
 }
 
 double DLOGGAUSS(z,mean,variance,p)
