@@ -86,13 +86,16 @@ int main(int argc, const char * argv[])
 	totalsize += sizeof(double) * ((nMAX+1)*(nDIM+1)*2 + (nITEM+1)*(nDIM+1)*2 + (nMAX+1) + (nITEM+1));
 	totalsize += sizeof(double) * ((nITEM+1)*(nITEM+1)*3);
 	SCHOOL = (YEWON *)malloc(totalsize * (nSCHOOL+1));
+
+	// memory alloc
+	// 
 	for(k = 0; k <= nSCHOOL; k++){
 		SCHOOL[k].cbsize = totalsize;
-		SCHOOL[k].dataset = (int**)malloc(sizeof(int*)*(nMAX+1));
-		SCHOOL[k].count_samp = (int*)malloc(sizeof(int*)*(nMAX+1));
-		SCHOOL[k].count_item = (int*)malloc(sizeof(int*)*(nITEM+1));
-		SCHOOL[k].Y = (int***)malloc(sizeof(int**)*(nITEM+1));
-		SCHOOL[k].U = (int***)malloc(sizeof(int**)*(nMAX+1));
+		SCHOOL[k].dataset = (int**)malloc(sizeof(int*)*(nMAX+1)); // NOTE: **dataset: item response dataset (nSAMPLE X nITEM)
+		SCHOOL[k].count_samp = (int*)malloc(sizeof(int)*(nMAX+1)); // NOTE: (nMAX+1) array of arrays, what is it?
+		SCHOOL[k].count_item = (int*)malloc(sizeof(int)*(nITEM+1));
+		SCHOOL[k].Y = (int***)malloc(sizeof(int**)*(nITEM+1)); // NOTE: Yi,n×n for item i
+		SCHOOL[k].U = (int***)malloc(sizeof(int**)*(nMAX+1)); // NOTE: Uk,p×p for respondent k
 		SCHOOL[k].oldbeta = (double*)malloc(sizeof(double)*(nITEM+1));
 		SCHOOL[k].newbeta = (double*)malloc(sizeof(double)*(nITEM+1));
 		SCHOOL[k].oldtheta = (double*)malloc(sizeof(double)*(nMAX+1));
