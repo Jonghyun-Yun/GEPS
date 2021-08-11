@@ -4,11 +4,11 @@ rev_code <- function(x) {
   return(abs(x-6))
 }
 
-                                        # ---------------------------------------------------------------------------------------------------------
-# High School
-# ---------------------------------------------------------------------------------------------------------
+## ---------------------------------------------------------------------------------------------------------
+## High School
+## ---------------------------------------------------------------------------------------------------------
 library(foreign)
-nschool <- 62 # there are 63 schools??
+nschool <- 62 # why not 63 schools??
 high <- read.spss("y3_high.sav", to.data.frame = TRUE)
 high.data <- high[!is.na(high$Y3H_CLASS), ]
 
@@ -100,7 +100,7 @@ full.high[is.na(full.high)] <- 0
 full.neg_item <-c(1:6, 13:14, 20:22, 31:33, 42:48, 58:68)
 
 for (ii in full.neg_item) {
-  full.high[, ii] = rev_code(full.high[, ii])
+  full.high[, ii] <- rev_code(full.high[, ii])
 }
 
 ## dichotomizing
@@ -126,9 +126,9 @@ renov[renov == 2] <- 0
 write.table(renov, "y3_high/renov.txt", row.names = FALSE, col.names = FALSE)
 rm(list = ls())
 
-# ---------------------------------------------------------------------------------------------------------
-# Middle School
-# ---------------------------------------------------------------------------------------------------------
+## ---------------------------------------------------------------------------------------------------------
+## Middle School
+## ---------------------------------------------------------------------------------------------------------
 library(foreign)
 nschool <- 63
 middle <- read.spss("y3_middle.sav", to.data.frame = TRUE)
@@ -207,24 +207,27 @@ academic <- cbind(
 ) * 1
 full.middle <- cbind(full.middle, academic) # 59 - 68
 
-appear <- as.numeric(middle.data$Y3M_ST19_6) * 1 + as.numeric(middle.data$Y3M_ST19_7) * 1
-appear <- appear / 2
-
-positive <- as.numeric(middle.data$Y3M_ST20_4) * 1 + as.numeric(middle.data$Y3M_ST20_5) * 1
-positive <- positive / 2
+appear <- apply(cbind(
+  as.numeric(high.data$Y3H_ST19_6),
+  as.numeric(high.data$Y3H_ST19_7)
+), 1, max)
+positive <- apply(cbind(
+  as.numeric(high.data$Y3H_ST20_4),
+  as.numeric(high.data$Y3H_ST20_5)
+), 1, max)
 full.middle <- cbind(full.middle, appear, positive) # 69 - 70
 
 full.middle[is.na(full.middle)] <- 0
 
 ## reverse coding
-full.neg_item <-c(1:6, 13:14, 20:22, 31:33, 42:48, 58:68)
+full.neg_item <- c(1:6, 13:14, 20:22, 31:33, 42:48, 58:68)
 
 for (ii in full.neg_item) {
-  full.middle[, ii] = rev_code(full.middle[, ii])
+  full.middle[, ii] <- rev_code(full.middle[, ii])
 }
 
 ## dichotomizing
-full.middle = 1 * (full.middle > 3)
+full.middle <- 1 * (full.middle > 3)
 
 ## write to files
 for (i in 1:nschool) {
@@ -246,10 +249,10 @@ renov[renov == 2] <- 0
 write.table(renov, "y3_middle/renov.txt", row.names = FALSE, col.names = FALSE)
 rm(list = ls())
 
-# ---------------------------------------------------------------------------------------------------------
-# Elementary School
-# ---------------------------------------------------------------------------------------------------------
-# NOTE: re-coding hasn't been done.
+## ---------------------------------------------------------------------------------------------------------
+## Elementary School
+## ---------------------------------------------------------------------------------------------------------
+## NOTE: re-coding hasn't been done.
 library(foreign)
 element <- read.spss("y3_elementary.sav", to.data.frame = TRUE)
 element.data <- element[!is.na(element$Y3E_CLASS), ]
