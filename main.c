@@ -7,7 +7,7 @@ int main(int argc, const char * argv[])
 {
 	// Declare Variables
 	FILE *inp, *JIN, *HUR, *OUT, *PRT, *JYW, *ASA, *IMS, *JJW;
-	char buf[255], frname[255];
+	char buf[255], frname[255]; 
 	int stime; long ltime;
 	int ind, ite, a, b, i, j, k, l, v, accept, gcount, mcount, mutmp, *count, show1, show2;
 	double num, den, un, ratio;
@@ -43,14 +43,14 @@ int main(int argc, const char * argv[])
 		#endif
 	}
 
-	// Input Parameters
+	// Input Parameters. See header.h
 	inp = fopen("DATA/parameter.txt", "r");
 	if(inp == NULL) {printf("Can't open data file\n"); return 0;}
 	fscanf(inp, "%d", &niter);
 	fscanf(inp, "%d", &nburn);
 	fscanf(inp, "%d", &thin);
-	fscanf(inp, "%d", &print);
-	fscanf(inp, "%d", &repeat);
+	fscanf(inp, "%d", &print); // interval to print outputs
+	fscanf(inp, "%d", &repeat); // # chains
 	fscanf(inp, "%lf", &jump_beta);
 	fscanf(inp, "%lf", &jump_theta);
 	fscanf(inp, "%lf", &jump_mu);
@@ -64,7 +64,7 @@ int main(int argc, const char * argv[])
 	fclose(inp);
 
 	// Load Jumping Rule
-	jump_Z = dvector(0, nITEM);
+	jump_Z = dvector(0, nITEM); // NOTE: z? person?, size = (nITEM - 0 + 1): tuned by count_samp, 레이턴트 스페이스의 중안에 있는 애들이 점프를 잘 안해서...
 	inp = fopen("DATA/jump.txt", "r");
 	for(i = 0; i <= nITEM; i++){
 		fscanf(inp, "%lf", &jump_Z[i]);
@@ -72,6 +72,7 @@ int main(int argc, const char * argv[])
 	}
 	fclose(inp);
 
+    // nMAX: max(nSample)
 	// Declare typedef structure and set array of variables in typedef structure
 	totalsize  = sizeof(SCHOOL) + sizeof(int) * (nMAX+1)*(nITEM+1);
 	totalsize += sizeof(int) * (nMAX+1) + sizeof(int) * (nITEM+1);
@@ -92,8 +93,8 @@ int main(int argc, const char * argv[])
 	for(k = 0; k <= nSCHOOL; k++){
 		SCHOOL[k].cbsize = totalsize;
 		SCHOOL[k].dataset = (int**)malloc(sizeof(int*)*(nMAX+1)); // NOTE: **dataset: item response dataset (nSAMPLE X nITEM)
-		SCHOOL[k].count_samp = (int*)malloc(sizeof(int)*(nMAX+1)); // NOTE: (nMAX+1) array of arrays, what is it?
-		SCHOOL[k].count_item = (int*)malloc(sizeof(int)*(nITEM+1));
+		SCHOOL[k].count_samp = (int*)malloc(sizeof(int)*(nMAX+1)); // NOTE: (nMAX+1) array, not matrix, 학교별로 레이턴트 포지션 평균구하기 위한 값, colsum or rowsum of item matrix
+		SCHOOL[k].count_item = (int*)malloc(sizeof(int)*(nITEM+1)); // 학교별로 레이턴트 포지션 평균구하기 위한 값, colsum or rowsum of item matrix
 		SCHOOL[k].Y = (int***)malloc(sizeof(int**)*(nITEM+1)); // NOTE: Yi,n×n for item i
 		SCHOOL[k].U = (int***)malloc(sizeof(int**)*(nMAX+1)); // NOTE: Uk,p×p for respondent k
 		SCHOOL[k].oldbeta = (double*)malloc(sizeof(double)*(nITEM+1));
@@ -174,6 +175,7 @@ int main(int argc, const char * argv[])
 		printf("MEMORY SETTING: %.2d\n", k);
 	}
 
+	// NOTE: not in namespace... what are these?
 	count = ivector(1, nSCHOOL);
 
 	oldmu = dmatrix(1, nITEM * (nITEM - 1) / 2, 0, nSCHOOL);
@@ -205,10 +207,12 @@ int main(int argc, const char * argv[])
 	avg_ran = dvector(1, nSCHOOL);
 	var_ran = dvector(1, nSCHOOL);
 
+	// NOTE: ??? char buf[255], frname[255];
 	frname[0]  = 'D'; frname[1]  = 'A'; frname[2]  = 'T'; frname[3]  = 'A'; frname[4]  = '/';
 	frname[5]  = 'i'; frname[6]  = 't'; frname[7]  = 'e'; frname[8]  = 'm';
 	frname[11] = '.'; frname[12] = 't'; frname[13] = 'x'; frname[14] = 't'; frname[15] = '\0';
 
+	//// init
 	for(k = 0; k <= nSCHOOL; k++){
 		for(i = 0; i <= nMAX; i++) SCHOOL[k].count_samp[i] = 0;
 		for(i = 0; i <= nITEM; i++) SCHOOL[k].count_item[i] = 0;
@@ -252,6 +256,7 @@ int main(int argc, const char * argv[])
 		for(i = 0; i <= nITEM; i++) SCHOOL[k].acc_Zitem[i] = 0.0;
 		if(k != 0) count[k] = 0;
 
+		//NOTE: (char)(48) character code for 0
 		if(k != 0){
 			if(k < 10){frname[9] = (char)(48); frname[10] = (char)(k + 48);}
 			else{frname[9] = (char)(k/10 + 48); frname[10] = (char)(k%10 + 48);}
@@ -285,7 +290,7 @@ int main(int argc, const char * argv[])
 						SCHOOL[k].U[a][i][j] = SCHOOL[k].dataset[a][i] * SCHOOL[k].dataset[a][j];
 						SCHOOL[k].U[a][j][i] = SCHOOL[k].U[a][i][j];
 					}
-		}
+		} /// end of if(k != 0){
 		printf("INITIALIZATION AND DATA LOADING: %.2d\n", k);
 	}
 	for(i = 1; i <= nITEM * (nITEM - 1) / 2; i++){
@@ -306,6 +311,7 @@ int main(int argc, const char * argv[])
 
 	for(v = 0; v < repeat; v++){
 		// Initialize Variables
+		// all random-walk MH samplers
 		for(k = 1; k <= nSCHOOL; k++){
 			for(i = 1; i <= nITEM; i++) SCHOOL[k].oldbeta[i] = SCHOOL[k].newbeta[i] = 0.0;
 			for(i = 1; i <= ncount[k]; i++) SCHOOL[k].oldtheta[i] = SCHOOL[k].newtheta[i] = 0.0;

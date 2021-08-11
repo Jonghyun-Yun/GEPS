@@ -7,8 +7,8 @@
 #define nITEM    72
 #define nSCHOOL  62
 #define nDIM      2
-#define nCOV      2
-#define nMAX     81
+#define nCOV      2 // not used
+#define nMAX     81 // NOTE: nMAX?
 
 static int **dataset;
 static int totalsize, MM;
@@ -26,6 +26,8 @@ static double pr_mean_mu = 0.0, pr_var_mu = 10.0;
 static double pr_mean_delta = 0.0, pr_var_delta = 10.0;
 static double pr_mean_gamma = 0.0, pr_var_gamma = 10.0;
 
+// NOTE: type alias YEWON to give a name to 'struct'. defining struct, not declaring
+// https://stackoverflow.com/questions/17720223/c-typedef-struct-name-vs-typedef-struct-name
 typedef struct school_type{
 	int cbsize;
 	int equal;
@@ -44,7 +46,7 @@ typedef struct school_type{
 	double **sample_item_mat, **sum_item_mat, **var_item_mat;
 }YEWON;
 
-static YEWON *SCHOOL;
+static YEWON *SCHOOL; // declaring struct
 /*
 Define Variables for Dataset
   nITEM: the number of item;
