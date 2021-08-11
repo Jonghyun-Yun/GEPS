@@ -31,7 +31,7 @@ citizen <- cbind(
   high.data$Y3H_ST19_14, high.data$Y3H_ST19_15,
   high.data$Y3H_ST19_16, high.data$Y3H_ST19_17
 ) * 1
-full.high <- cbind(new.high, citizen) # 7 - 22
+full.high <- cbind(full.high, citizen) # 7 - 22
 
 efficacy <- cbind(
   high.data$Y3H_ST20_1, high.data$Y3H_ST20_2,
@@ -39,13 +39,13 @@ efficacy <- cbind(
   high.data$Y3H_ST20_5, high.data$Y3H_ST20_8,
   high.data$Y3H_ST20_9, high.data$Y3H_ST20_10
 ) * 1
-full.high <- cbind(new.high, efficacy) # 23 - 30
+full.high <- cbind(full.high, efficacy) # 23 - 30
 
 belief <- cbind(
   high.data$Y3H_ST23_1, high.data$Y3H_ST23_2,
   high.data$Y3H_ST23_3
 ) * 1
-full.high <- cbind(new.high, belief) # 31 - 33
+full.high <- cbind(full.high, belief) # 31 - 33
 
 learning <- cbind(
   high.data$Y3H_ST26_1, high.data$Y3H_ST26_2,
