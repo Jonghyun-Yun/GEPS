@@ -87,11 +87,14 @@ academic <- cbind(
 ) * 1
 full.high <- cbind(full.high, academic) # 59 - 68
 
-appear <- as.numeric(high.data$Y3H_ST20_6) * 1 + as.numeric(high.data$Y3H_ST20_7) * 1
-appear <- appear / 2
-
-positive <- as.numeric(high.data$Y3H_ST21_4) * 1 + as.numeric(high.data$Y3H_ST21_5) * 1
-positive <- positive / 2
+appear <- apply(cbind(
+  as.numeric(high.data$Y3H_ST20_6),
+  as.numeric(high.data$Y3H_ST20_7)
+), 1, max)
+positive <- apply(cbind(
+  as.numeric(high.data$Y3H_ST21_4),
+  as.numeric(high.data$Y3H_ST21_5)
+), 1, max)
 full.high <- cbind(full.high, appear, positive) # 69 - 70
 
 full.high[is.na(full.high)] <- 0
