@@ -13,8 +13,11 @@
 static int **dataset;
 static int totalsize, MM;
 static int iter, niter, nburn, repeat, thin, print;
-static int *ncount;
-static double *oldsigma, *oldtau;
+static int *ncount; // nSAMPLE for each school
+static double *oldsigma, *oldtau; //tau: delta var in Eq (8)
+								  //sigma: dist mat var Eq (7)
+// oldmu: δ_{m,p * p} in Eq (7). (1st index is linearized)
+// olddelta: ̣μ_{p * p} in Eq (8). (1st index is linearized)
 static double *olddelta, **oldmu;
 static double *oldgamma, *oldvarphi;
 static double *jump_Z, jump_beta, jump_theta, jump_mu, jump_W;
@@ -37,6 +40,7 @@ typedef struct school_type{
 	double **old_Zsamp, **new_Zsamp, **old_Zmean, **new_Zmean, **old_Zitem, **new_Zitem;
 	double **sample_beta,  *sum_beta,  *acc_beta,  *var_beta;
 	double **old_item_mat, **new_item_mat;
+	//  oldsigma: person position var (Eq 5)
 	double oldsigma, *mean_Z;
 	double post_a, post_b;
 	double *sample_sigma, sum_sigma, var_sigma;
