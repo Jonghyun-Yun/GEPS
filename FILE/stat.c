@@ -349,6 +349,14 @@ while(un<=0.0 || un>=1.0) un=rand()*1.0/RAND_MAX;
 return 1.0-exp(1.0/b*log(un));
 }
 
+/* Generate a random variable from Beta(a,b) */
+double beta_rng(double a, double b)
+{
+  double ga, gb;
+  ga = Rgamma(a, 1);
+  gb = Rgamma(b, 1);
+  return ga / (ga + gb);
+}
 
 /* Generate deviates from Dirichlet(a1,a2,\ldots,a_k) */
 int RDirichlet(w,a,k)
