@@ -4,7 +4,7 @@
 #include "cost.c"
 
 int main(int argc, const char *argv[]) {
-/// Declare Variables
+  // Declare Variables
   FILE *inp, *JIN, *HUR, *OUT, *PRT, *JYW, *ASA, *IMS, *JJW;
   // model selection results
   FILE *FMS;
@@ -419,7 +419,7 @@ int main(int argc, const char *argv[]) {
   for (i = 1; i <= nSCHOOL; i++) {
     oldeta[i] = 0.0;
     oldxi[i] = 0.0;
-    }
+  }
 
   // Declare Additional Variables
   sample_samp_like = dvector(1, nMAX);
@@ -502,8 +502,8 @@ int main(int argc, const char *argv[]) {
       sum_xi[i] = var_xi[i] = 0.0;
       for (j = 1; j <= (niter - nburn) / thin; j++)
         sample_sigma[j][i] = 0.0;
-        sample_eta[j][i] = 0.0;
-        sample_xi[j][i] = 0.0;
+      sample_eta[j][i] = 0.0;
+      sample_xi[j][i] = 0.0;
     }
     for (k = 1; k <= nSCHOOL; k++)
       for (i = 1; i <= nITEM * (nITEM - 1) / 2; i++)
@@ -654,18 +654,18 @@ int main(int argc, const char *argv[]) {
               for (k = 1; k <= ncount[a]; k++) {
                 if (SCHOOL[a].U[k][ind][i] == 1) {
                   sample_item_like[ind] -= -log(
-                      1.0 +
-                      exp(-(SCHOOL[a].oldtheta[k] - oldeta_or_one[a] * old_item_distance[ind])));
+                      1.0 + exp(-(SCHOOL[a].oldtheta[k] -
+                                  oldeta_or_one[a] * old_item_distance[ind])));
                   sample_item_like[ind] += -log(
-                      1.0 +
-                      exp(-(SCHOOL[a].oldtheta[k] - oldeta_or_one[a] * new_item_distance[ind])));
+                      1.0 + exp(-(SCHOOL[a].oldtheta[k] -
+                                  oldeta_or_one[a] * new_item_distance[ind])));
                 } else {
-                  sample_item_like[ind] -=
-                      -log(1.0 +
-                           exp(SCHOOL[a].oldtheta[k] - oldeta_or_one[a] * old_item_distance[ind]));
-                  sample_item_like[ind] +=
-                      -log(1.0 +
-                           exp(SCHOOL[a].oldtheta[k] - oldeta_or_one[a] * new_item_distance[ind]));
+                  sample_item_like[ind] -= -log(
+                      1.0 + exp(SCHOOL[a].oldtheta[k] -
+                                oldeta_or_one[a] * old_item_distance[ind]));
+                  sample_item_like[ind] += -log(
+                      1.0 + exp(SCHOOL[a].oldtheta[k] -
+                                oldeta_or_one[a] * new_item_distance[ind]));
                 }
               }
             }
@@ -750,113 +750,146 @@ int main(int argc, const char *argv[]) {
                 SCHOOL[a].new_item_mat[j][k] = SCHOOL[a].old_item_mat[j][k];
           }
         }
-    }
 
-      for (i = 1; i <= ncount[a]; i++) {
-        for (j = 1; j <= nDIM; j++)
-          SCHOOL[a].new_Zsamp[i][j] =
-              SCHOOL[a].old_Zsamp[i][j] + jump_W * gasdev();
+        for (i = 1; i <= ncount[a]; i++) {
+          for (j = 1; j <= nDIM; j++)
+            SCHOOL[a].new_Zsamp[i][j] =
+                SCHOOL[a].old_Zsamp[i][j] + jump_W * gasdev();
 
-        for (ind = 1; ind <= ncount[a]; ind++)
-          sample_samp_like[ind] = old_samp_distance[ind] =
-              new_samp_distance[ind] = 0.0;
+          for (ind = 1; ind <= ncount[a]; ind++)
+            sample_samp_like[ind] = old_samp_distance[ind] =
+                new_samp_distance[ind] = 0.0;
 #pragma omp parallel for private(ind, k, l) default(shared)
-        for (ind = 1; ind <= ncount[a]; ind++)
-          if (ind != i) {
-            for (l = 1; l <= nDIM; l++) {
-              old_samp_distance[ind] +=
-                  pow((SCHOOL[a].old_Zsamp[ind][l] - SCHOOL[a].old_Zsamp[i][l]),
-                      2.0);
-              new_samp_distance[ind] +=
-                  pow((SCHOOL[a].old_Zsamp[ind][l] - SCHOOL[a].new_Zsamp[i][l]),
-                      2.0);
-            }
-            old_samp_distance[ind] = sqrt(old_samp_distance[ind]);
-            new_samp_distance[ind] = sqrt(new_samp_distance[ind]);
-            for (k = 1; k <= nITEM; k++) {
-              if (SCHOOL[a].Y[k][ind][i] == 1) {
-                sample_samp_like[ind] -=
-                    -log(1.0 +
-                         exp(-(SCHOOL[a].oldbeta[k] - old_samp_distance[ind])));
-                sample_samp_like[ind] +=
-                    -log(1.0 +
-                         exp(-(SCHOOL[a].oldbeta[k] - new_samp_distance[ind])));
-              } else {
-                sample_samp_like[ind] -= -log(
-                    1.0 + exp(SCHOOL[a].oldbeta[k] - old_samp_distance[ind]));
-                sample_samp_like[ind] += -log(
-                    1.0 + exp(SCHOOL[a].oldbeta[k] - new_samp_distance[ind]));
+          for (ind = 1; ind <= ncount[a]; ind++)
+            if (ind != i) {
+              for (l = 1; l <= nDIM; l++) {
+                old_samp_distance[ind] += pow(
+                    (SCHOOL[a].old_Zsamp[ind][l] - SCHOOL[a].old_Zsamp[i][l]),
+                    2.0);
+                new_samp_distance[ind] += pow(
+                    (SCHOOL[a].old_Zsamp[ind][l] - SCHOOL[a].new_Zsamp[i][l]),
+                    2.0);
+              }
+              old_samp_distance[ind] = sqrt(old_samp_distance[ind]);
+              new_samp_distance[ind] = sqrt(new_samp_distance[ind]);
+              for (k = 1; k <= nITEM; k++) {
+                if (SCHOOL[a].Y[k][ind][i] == 1) {
+                  sample_samp_like[ind] -= -log(
+                      1.0 +
+                      exp(-(SCHOOL[a].oldbeta[k] - old_samp_distance[ind])));
+                  sample_samp_like[ind] += -log(
+                      1.0 +
+                      exp(-(SCHOOL[a].oldbeta[k] - new_samp_distance[ind])));
+                } else {
+                  sample_samp_like[ind] -= -log(
+                      1.0 + exp(SCHOOL[a].oldbeta[k] - old_samp_distance[ind]));
+                  sample_samp_like[ind] += -log(
+                      1.0 + exp(SCHOOL[a].oldbeta[k] - new_samp_distance[ind]));
+                }
               }
             }
+          update_like_samp = 0.0;
+          for (ind = 1; ind <= ncount[a]; ind++)
+            update_like_samp += sample_samp_like[ind];
+          // printf("SCHOOL-%.2d, PERSON-%.2d:
+          // LIKELIHOOD_PERSON-%.3f\n", a, i, update_like_samp);
+
+          num = den = 0.0;
+          // printf("SCHOOL-%.2d, PERSON-%.2d: Num-%.3f, Den-%.3f\n", a,
+          // i, num, den);
+          for (j = 1; j <= nDIM; j++) {
+            num +=
+                dlognorm(SCHOOL[a].new_Zsamp[i][j], SCHOOL[a].old_Zmean[i][j],
+                         sqrt(SCHOOL[a].oldsigma));
+            den +=
+                dlognorm(SCHOOL[a].old_Zsamp[i][j], SCHOOL[a].old_Zmean[i][j],
+                         sqrt(SCHOOL[a].oldsigma));
           }
-        update_like_samp = 0.0;
-        for (ind = 1; ind <= ncount[a]; ind++)
-          update_like_samp += sample_samp_like[ind];
-        // printf("SCHOOL-%.2d, PERSON-%.2d:
-        // LIKELIHOOD_PERSON-%.3f\n", a, i, update_like_samp);
+          ratio = update_like_samp + (num - den);
+          // printf("SCHOOL-%.2d, PERSON-%.2d: Num-%.3f, Den-%.3f\n", a,
+          // i, num, den);
 
-        num = den = 0.0;
-        // printf("SCHOOL-%.2d, PERSON-%.2d: Num-%.3f, Den-%.3f\n", a,
-        // i, num, den);
-        for (j = 1; j <= nDIM; j++) {
-          num += dlognorm(SCHOOL[a].new_Zsamp[i][j], SCHOOL[a].old_Zmean[i][j],
-                          sqrt(SCHOOL[a].oldsigma));
-          den += dlognorm(SCHOOL[a].old_Zsamp[i][j], SCHOOL[a].old_Zmean[i][j],
-                          sqrt(SCHOOL[a].oldsigma));
-        }
-        ratio = update_like_samp + (num - den);
-        // printf("SCHOOL-%.2d, PERSON-%.2d: Num-%.3f, Den-%.3f\n", a,
-        // i, num, den);
-
-        if (ratio > 0.0)
-          accept = 1;
-        else {
-          un = rand() * 1.0 / RAND_MAX;
-          if (log(un) < ratio)
+          if (ratio > 0.0)
             accept = 1;
-          else
-            accept = 0;
-        }
+          else {
+            un = rand() * 1.0 / RAND_MAX;
+            if (log(un) < ratio)
+              accept = 1;
+            else
+              accept = 0;
+          }
 
-        if (accept == 1) {
-          for (j = 1; j <= nDIM; j++)
-            // i: for (i = 1; i <= ncount[a]; i++)
-            SCHOOL[a].old_Zsamp[i][j] = SCHOOL[a].new_Zsamp[i][j];
-          SCHOOL[a].acc_Zsamp[i] += 1.0 / niter;
-        } else {
-          for (j = 1; j <= nDIM; j++)
-            SCHOOL[a].new_Zsamp[i][j] = SCHOOL[a].old_Zsamp[i][j];
-        }
-      } // end of for (i = 1; i <= ncount[a]; i++)
+          if (accept == 1) {
+            for (j = 1; j <= nDIM; j++)
+              // i: for (i = 1; i <= ncount[a]; i++)
+              SCHOOL[a].old_Zsamp[i][j] = SCHOOL[a].new_Zsamp[i][j];
+            SCHOOL[a].acc_Zsamp[i] += 1.0 / niter;
+          } else {
+            for (j = 1; j <= nDIM; j++)
+              SCHOOL[a].new_Zsamp[i][j] = SCHOOL[a].old_Zsamp[i][j];
+          }
+        } // end of for (i = 1; i <= ncount[a]; i++)
 
-      SCHOOL[a].post_a = prior_a;
-      SCHOOL[a].post_b = prior_b;
-      for (i = 1; i <= ncount[a]; i++)
-        for (j = 1; j <= nDIM; j++) {
-          SCHOOL[a].post_a += 0.5;
-          SCHOOL[a].post_b +=
-              0.5 * (SCHOOL[a].old_Zsamp[i][j] - SCHOOL[a].old_Zmean[i][j]) *
-              (SCHOOL[a].old_Zsamp[i][j] - SCHOOL[a].old_Zmean[i][j]);
-        }
-      // NOTE: person position var (Eq 5)
-      SCHOOL[a].oldsigma = 1.0 / Rgamma(SCHOOL[a].post_a, SCHOOL[a].post_b);
+        SCHOOL[a].post_a = prior_a;
+        SCHOOL[a].post_b = prior_b;
+        for (i = 1; i <= ncount[a]; i++)
+          for (j = 1; j <= nDIM; j++) {
+            SCHOOL[a].post_a += 0.5;
+            SCHOOL[a].post_b +=
+                0.5 * (SCHOOL[a].old_Zsamp[i][j] - SCHOOL[a].old_Zmean[i][j]) *
+                (SCHOOL[a].old_Zsamp[i][j] - SCHOOL[a].old_Zmean[i][j]);
+          }
+        // NOTE: person position var (Eq 5)
+        SCHOOL[a].oldsigma = 1.0 / Rgamma(SCHOOL[a].post_a, SCHOOL[a].post_b);
 
 // 2. Update $\beta_i$ from the proposal distribution $\phi_2(\cdot)$
 #pragma omp parallel for private(i, j, k, old_like_beta, new_like_beta, num,   \
                                  den, accept, ratio, un) default(shared)
-      for (i = 1; i <= nITEM; i++) {
-        old_like_beta = cost_beta(i, SCHOOL[a].oldbeta[i], a); // log-like
-        SCHOOL[a].newbeta[i] = SCHOOL[a].oldbeta[i] + jump_beta * gasdev();
-        if (fabs(SCHOOL[a].newbeta[i]) < 7.0) {
-          new_like_beta = cost_beta(i, SCHOOL[a].newbeta[i], a);
-          num = new_like_beta;
-          den = old_like_beta;
+        for (i = 1; i <= nITEM; i++) {
+          old_like_beta = cost_beta(i, SCHOOL[a].oldbeta[i], a); // log-like
+          SCHOOL[a].newbeta[i] = SCHOOL[a].oldbeta[i] + jump_beta * gasdev();
+          if (fabs(SCHOOL[a].newbeta[i]) < 7.0) {
+            new_like_beta = cost_beta(i, SCHOOL[a].newbeta[i], a);
+            num = new_like_beta;
+            den = old_like_beta;
 
-          // oldvarphi: beta var Eq (6)
-          num +=
-              dlognorm(SCHOOL[a].oldbeta[i], oldgamma[i], sqrt(oldvarphi[i]));
-          den +=
-              dlognorm(SCHOOL[a].newbeta[i], oldgamma[i], sqrt(oldvarphi[i]));
+            // oldvarphi: beta var Eq (6)
+            num +=
+                dlognorm(SCHOOL[a].oldbeta[i], oldgamma[i], sqrt(oldvarphi[i]));
+            den +=
+                dlognorm(SCHOOL[a].newbeta[i], oldgamma[i], sqrt(oldvarphi[i]));
+            ratio = num - den;
+
+            if (ratio > 0.0)
+              accept = 1;
+            else {
+              un = rand() * 1.0 / RAND_MAX;
+              if (log(un) < ratio)
+                accept = 1;
+              else
+                accept = 0;
+            }
+          } else
+            accept = 0;
+
+          if (accept == 1) {
+            SCHOOL[a].oldbeta[i] = SCHOOL[a].newbeta[i];
+            SCHOOL[a].acc_beta[i] += 1.0 / niter;
+          } else
+            SCHOOL[a].newbeta[i] = SCHOOL[a].oldbeta[i];
+        }
+
+#pragma omp parallel for private(i, old_like_theta, new_like_theta, num, den,  \
+                                 accept, ratio, un) default(shared)
+        for (i = 1; i <= ncount[a]; i++) {
+          old_like_theta = cost_theta(i, SCHOOL[a].oldtheta[i], a);
+          SCHOOL[a].newtheta[i] = SCHOOL[a].oldtheta[i] + jump_theta * gasdev();
+          new_like_theta = cost_theta(i, SCHOOL[a].newtheta[i], a);
+
+          num = dlognorm(SCHOOL[a].newtheta[i], pr_mean_theta, pr_var_theta) +
+                new_like_theta;
+          den = dlognorm(SCHOOL[a].oldtheta[i], pr_mean_theta, pr_var_theta) +
+                old_like_theta;
           ratio = num - den;
 
           if (ratio > 0.0)
@@ -868,69 +901,40 @@ int main(int argc, const char *argv[]) {
             else
               accept = 0;
           }
-        } else
-          accept = 0;
 
-        if (accept == 1) {
-          SCHOOL[a].oldbeta[i] = SCHOOL[a].newbeta[i];
-          SCHOOL[a].acc_beta[i] += 1.0 / niter;
-        } else
-          SCHOOL[a].newbeta[i] = SCHOOL[a].oldbeta[i];
-      }
-
-#pragma omp parallel for private(i, old_like_theta, new_like_theta, num, den,  \
-                                 accept, ratio, un) default(shared)
-      for (i = 1; i <= ncount[a]; i++) {
-        old_like_theta = cost_theta(i, SCHOOL[a].oldtheta[i], a);
-        SCHOOL[a].newtheta[i] = SCHOOL[a].oldtheta[i] + jump_theta * gasdev();
-        new_like_theta = cost_theta(i, SCHOOL[a].newtheta[i], a);
-
-        num = dlognorm(SCHOOL[a].newtheta[i], pr_mean_theta, pr_var_theta) +
-              new_like_theta;
-        den = dlognorm(SCHOOL[a].oldtheta[i], pr_mean_theta, pr_var_theta) +
-              old_like_theta;
-        ratio = num - den;
-
-        if (ratio > 0.0)
-          accept = 1;
-        else {
-          un = rand() * 1.0 / RAND_MAX;
-          if (log(un) < ratio)
-            accept = 1;
-          else
-            accept = 0;
+          if (accept == 1) {
+            SCHOOL[a].oldtheta[i] = SCHOOL[a].newtheta[i];
+            SCHOOL[a].acc_theta[i] += 1.0 / niter;
+          } else
+            SCHOOL[a].newtheta[i] = SCHOOL[a].oldtheta[i];
         }
 
-        if (accept == 1) {
-          SCHOOL[a].oldtheta[i] = SCHOOL[a].newtheta[i];
-          SCHOOL[a].acc_theta[i] += 1.0 / niter;
-        } else
-          SCHOOL[a].newtheta[i] = SCHOOL[a].oldtheta[i];
-      }
+        // Save MCMC Results to Files and Repository Variables
+        // z, w, beta, theta, sigma (beta var)...
+        if (iter > nburn && iter % thin == 0) {
+          count[a]++;
+          for (i = 1; i <= ncount[a]; i++)
+            for (j = 1; j <= nDIM; j++)
+              SCHOOL[a].sample_Zsamp[count[a]][i][j] =
+                  SCHOOL[a].old_Zsamp[i][j];
+          for (i = 1; i <= nITEM; i++)
+            for (j = 1; j <= nDIM; j++)
+              SCHOOL[a].sample_Zitem[count[a]][i][j] =
+                  SCHOOL[a].old_Zitem[i][j];
+          for (i = 1; i <= nITEM; i++)
+            SCHOOL[a].sample_beta[count[a]][i] = SCHOOL[a].oldbeta[i];
+          for (i = 1; i <= ncount[a]; i++)
+            SCHOOL[a].sample_theta[count[a]][i] = SCHOOL[a].oldtheta[i];
+          SCHOOL[a].sample_sigma[count[a]] = SCHOOL[a].oldsigma;
+        }
 
-      // Save MCMC Results to Files and Repository Variables
-      // z, w, beta, theta, sigma (beta var)...
-      if (iter > nburn && iter % thin == 0) {
-        count[a]++;
-        for (i = 1; i <= ncount[a]; i++)
-          for (j = 1; j <= nDIM; j++)
-            SCHOOL[a].sample_Zsamp[count[a]][i][j] = SCHOOL[a].old_Zsamp[i][j];
-        for (i = 1; i <= nITEM; i++)
-          for (j = 1; j <= nDIM; j++)
-            SCHOOL[a].sample_Zitem[count[a]][i][j] = SCHOOL[a].old_Zitem[i][j];
-        for (i = 1; i <= nITEM; i++)
-          SCHOOL[a].sample_beta[count[a]][i] = SCHOOL[a].oldbeta[i];
-        for (i = 1; i <= ncount[a]; i++)
-          SCHOOL[a].sample_theta[count[a]][i] = SCHOOL[a].oldtheta[i];
-        SCHOOL[a].sample_sigma[count[a]] = SCHOOL[a].oldsigma;
-      }
-
-      // Print MCMC Results to Screen
-      if (iter % print == 0) {
-        printf("%.5d-BETA%.2d  ", iter, a);
-        for (i = 1; i <= nITEM; i++)
-          printf("% .4f ", SCHOOL[a].oldbeta[i]);
-        printf("%.4f\n", SCHOOL[a].oldsigma);
+        // Print MCMC Results to Screen
+        if (iter % print == 0) {
+          printf("%.5d-BETA%.2d  ", iter, a);
+          for (i = 1; i <= nITEM; i++)
+            printf("% .4f ", SCHOOL[a].oldbeta[i]);
+          printf("%.4f\n", SCHOOL[a].oldsigma);
+        }
       }
 
       // beta var update
@@ -1036,18 +1040,20 @@ int main(int argc, const char *argv[]) {
 
     for(k = 0; k < nsample; k++){
       for(i = 0; i < nitem; i++){
-        if(data(k,i) == 1.0) new_like_gamma += -std::log(1.0 + std::exp(-(oldbeta(i) + oldtheta(k) - newgamma * dist(k,i))));
-        else new_like_gamma += -std::log(1.0 + std::exp(oldbeta(i) + oldtheta(k) - newgamma * dist(k,i)));
-        if(data(k,i) == 1.0) old_like_gamma += -std::log(1.0 + std::exp(-(oldbeta(i) + oldtheta(k) - oldgamma * dist(k,i))));
-        else old_like_gamma += -std::log(1.0 + std::exp(oldbeta(i) + oldtheta(k) - oldgamma * dist(k,i)));
+        if(data(k,i) == 1.0) new_like_gamma += -std::log(1.0 +
+    std::exp(-(oldbeta(i) + oldtheta(k) - newgamma * dist(k,i)))); else
+    new_like_gamma += -std::log(1.0 + std::exp(oldbeta(i) + oldtheta(k) -
+    newgamma * dist(k,i))); if(data(k,i) == 1.0) old_like_gamma += -std::log(1.0
+    + std::exp(-(oldbeta(i) + oldtheta(k) - oldgamma * dist(k,i)))); else
+    old_like_gamma += -std::log(1.0 + std::exp(oldbeta(i) + oldtheta(k) -
+    oldgamma * dist(k,i)));
       }
     }
 
-    num = new_like_gamma + R::dlnorm(oldgamma, std::log(newgamma), jump_gamma, 1);
-    den = old_like_gamma + R::dlnorm(newgamma, std::log(oldgamma), jump_gamma, 1) ;
-    if(pi == 1){
-      num += R::dlnorm(newgamma, pr_slab_mean, pr_slab_sd, 1);
-      den += R::dlnorm(oldgamma, pr_slab_mean, pr_slab_sd, 1);
+    num = new_like_gamma + R::dlnorm(oldgamma, std::log(newgamma), jump_gamma,
+    1); den = old_like_gamma + R::dlnorm(newgamma, std::log(oldgamma),
+    jump_gamma, 1) ; if(pi == 1){ num += R::dlnorm(newgamma, pr_slab_mean,
+    pr_slab_sd, 1); den += R::dlnorm(oldgamma, pr_slab_mean, pr_slab_sd, 1);
     }
     else{
       num += R::dlnorm(newgamma, pr_spike_mean, pr_spike_sd, 1);
@@ -1069,14 +1075,16 @@ int main(int argc, const char *argv[]) {
     else newgamma = oldgamma;
          * */
         /* xi update */
-    //pi update(spike slab parameter)
+        // pi update(spike slab parameter)
 
-    /* pi_prob  = xi * R::dlnorm(oldgamma, pr_slab_mean, pr_slab_sd, 0); */
-    /* pi_prob /= (1.0 - xi) * R::dlnorm(oldgamma, pr_spike_mean, pr_spike_sd, 0) + xi * R::dlnorm(oldgamma, pr_slab_mean, pr_slab_sd, 0); */
-    /* pi = R::rbinom(1, pi_prob); */
+        /* pi_prob  = xi * R::dlnorm(oldgamma, pr_slab_mean, pr_slab_sd, 0); */
+        /* pi_prob /= (1.0 - xi) * R::dlnorm(oldgamma, pr_spike_mean,
+         * pr_spike_sd, 0) + xi * R::dlnorm(oldgamma, pr_slab_mean, pr_slab_sd,
+         * 0); */
+        /* pi = R::rbinom(1, pi_prob); */
 
-    /* // xi update(spike slab parameter) */
-    /* xi = R::rbeta(pr_beta_a + pi, pr_beta_b + 1.0 - pi); */
+        /* // xi update(spike slab parameter) */
+        /* xi = R::rbeta(pr_beta_a + pi, pr_beta_b + 1.0 - pi); */
       }
 
       if (iter % print == 0)
