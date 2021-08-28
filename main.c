@@ -1,11 +1,13 @@
+#include "header.h"
 #include "FILE/nrutil.h"
 #include "FILE/stat.c"
 #include "cost.c"
-#include "header.h"
 
 int main(int argc, const char *argv[]) {
 /// Declare Variables
   FILE *inp, *JIN, *HUR, *OUT, *PRT, *JYW, *ASA, *IMS, *JJW;
+  // model selection results
+  FILE *FMS;
   char buf[255], frname[255];
   int stime;
   long ltime;
@@ -13,6 +15,7 @@ int main(int argc, const char *argv[]) {
       show1, show2;
   double num, den, un, ratio;
   double old_like_beta, new_like_beta, old_like_theta, new_like_theta;
+  double old_like_eta, new_like_eta;
   double update_like_samp, update_like_item, tmp_oldmu, tmp_newmu;
   double post_a, post_b, school_a, school_b;
   double *old_samp_distance, *new_samp_distance, *sample_samp_like;
@@ -25,8 +28,19 @@ int main(int argc, const char *argv[]) {
   double **sample_varphi, *sum_varphi, *var_varphi;
   double var_fix, avg_fix, *var_ran, *avg_ran, avg_beta, var_beta;
 
+  double **sample_eta, *sum_eta, *var_eta;
+  double **sample_xi, *sum_xi, *var_xi;
+  double *oldeta_or_one;
+
   // # CPUs
   MM = atoi(argv[1]);
+
+  /* model selection */
+  int DO_MS = atoi(argv[2]);
+  if (DO_MS > 1 || DO_MS < 0) {
+    printf("invalid arguemnt for DO_MS.\n");
+    return 0;
+  }
 
   // Set Random Seed
   ltime = time(NULL);
@@ -226,6 +240,17 @@ int main(int argc, const char *argv[]) {
   oldgamma = dvector(1, nITEM);
   oldvarphi = dvector(1, nITEM);
 
+  /* model selection param and summary */
+  oldeta = dvector(1, nSCHOOL);
+  oldeta_or_one = dvector(1, nSCHOOL);
+  oldxi = dvector(1, nSCHOOL);
+  sample_eta = dmatrix(1, (niter - nburn) / thin, 1, nSCHOOL);
+  sample_xi = dmatrix(1, (niter - nburn) / thin, 1, nSCHOOL);
+  sum_eta = dvector(1, nSCHOOL);
+  var_eta = dvector(1, nSCHOOL);
+  sum_xi = dvector(1, nSCHOOL);
+  var_xi = dvector(1, nSCHOOL);
+
   sample_sigma = dmatrix(1, (niter - nburn) / thin, 1, nSCHOOL);
   sample_delta = dmatrix(1, (niter - nburn) / thin, 1, nITEM * (nITEM - 1) / 2);
   sample_tau = dmatrix(1, (niter - nburn) / thin, 1, nITEM * (nITEM - 1) / 2);
@@ -391,6 +416,10 @@ int main(int argc, const char *argv[]) {
   }
   for (i = 1; i <= nSCHOOL; i++)
     oldsigma[i] = 0.0;
+  for (i = 1; i <= nSCHOOL; i++) {
+    oldeta[i] = 0.0;
+    oldxi[i] = 0.0;
+    }
 
   // Declare Additional Variables
   sample_samp_like = dvector(1, nMAX);
@@ -467,8 +496,14 @@ int main(int argc, const char *argv[]) {
     for (i = 1; i <= nSCHOOL; i++) {
       oldsigma[i] = 0.0;
       sum_sigma[i] = var_sigma[i] = 0.0;
+      oldeta[i] = 0.0;
+      sum_eta[i] = var_eta[i] = 0.0;
+      oldxi[i] = 0.0;
+      sum_xi[i] = var_xi[i] = 0.0;
       for (j = 1; j <= (niter - nburn) / thin; j++)
         sample_sigma[j][i] = 0.0;
+        sample_eta[j][i] = 0.0;
+        sample_xi[j][i] = 0.0;
     }
     for (k = 1; k <= nSCHOOL; k++)
       for (i = 1; i <= nITEM * (nITEM - 1) / 2; i++)
@@ -572,9 +607,12 @@ int main(int argc, const char *argv[]) {
     PRT = fopen(frname, "a");
     frname[11] = 'a';
     JJW = fopen(frname, "a");
+    frname[11] = 'm';
+    FMS = fopen(frname, "a");
     gcount = mcount = 0;
     for (iter = 1; iter <= niter; iter++) {
-      for (a = 1; a <= nSCHOOL; a++)
+      for (a = 1; a <= nSCHOOL; a++) {
+        oldeta_or_one[a] = DO_MS * oldeta[a];
         for (i = 1; i <= nITEM; i++) {
 
 #pragma omp parallel for private(j, k) default(shared)
@@ -612,22 +650,22 @@ int main(int argc, const char *argv[]) {
               SCHOOL[a].new_item_mat[i][ind] = SCHOOL[a].new_item_mat[ind][i];
               SCHOOL[a].old_item_mat[ind][i] = old_item_distance[ind];
               SCHOOL[a].old_item_mat[i][ind] = SCHOOL[a].old_item_mat[ind][i];
-              // item likelihood
+              // item likelihood + fix for model selection eta
               for (k = 1; k <= ncount[a]; k++) {
                 if (SCHOOL[a].U[k][ind][i] == 1) {
                   sample_item_like[ind] -= -log(
                       1.0 +
-                      exp(-(SCHOOL[a].oldtheta[k] - old_item_distance[ind])));
+                      exp(-(SCHOOL[a].oldtheta[k] - oldeta_or_one[a] * old_item_distance[ind])));
                   sample_item_like[ind] += -log(
                       1.0 +
-                      exp(-(SCHOOL[a].oldtheta[k] - new_item_distance[ind])));
+                      exp(-(SCHOOL[a].oldtheta[k] - oldeta_or_one[a] * new_item_distance[ind])));
                 } else {
                   sample_item_like[ind] -=
                       -log(1.0 +
-                           exp(SCHOOL[a].oldtheta[k] - old_item_distance[ind]));
+                           exp(SCHOOL[a].oldtheta[k] - oldeta_or_one[a] * old_item_distance[ind]));
                   sample_item_like[ind] +=
                       -log(1.0 +
-                           exp(SCHOOL[a].oldtheta[k] - new_item_distance[ind]));
+                           exp(SCHOOL[a].oldtheta[k] - oldeta_or_one[a] * new_item_distance[ind]));
                 }
               }
             }
@@ -712,6 +750,7 @@ int main(int argc, const char *argv[]) {
                 SCHOOL[a].new_item_mat[j][k] = SCHOOL[a].old_item_mat[j][k];
           }
         }
+    }
 
       for (i = 1; i <= ncount[a]; i++) {
         for (j = 1; j <= nDIM; j++)
@@ -986,6 +1025,60 @@ int main(int argc, const char *argv[]) {
               avg_fix + sqrt(var_fix) * gasdev();
         }
 
+      // model selection update: eta
+      for (k = 1; k <= nSCHOOL; k++) {
+        neweta[k] = log(oldeta[k]) + jump_eta * gasdev();
+        old_like_eta = new_like_eta = 0.0;
+        /* MH accept or not
+         * .....
+         *
+         *
+
+    for(k = 0; k < nsample; k++){
+      for(i = 0; i < nitem; i++){
+        if(data(k,i) == 1.0) new_like_gamma += -std::log(1.0 + std::exp(-(oldbeta(i) + oldtheta(k) - newgamma * dist(k,i))));
+        else new_like_gamma += -std::log(1.0 + std::exp(oldbeta(i) + oldtheta(k) - newgamma * dist(k,i)));
+        if(data(k,i) == 1.0) old_like_gamma += -std::log(1.0 + std::exp(-(oldbeta(i) + oldtheta(k) - oldgamma * dist(k,i))));
+        else old_like_gamma += -std::log(1.0 + std::exp(oldbeta(i) + oldtheta(k) - oldgamma * dist(k,i)));
+      }
+    }
+
+    num = new_like_gamma + R::dlnorm(oldgamma, std::log(newgamma), jump_gamma, 1);
+    den = old_like_gamma + R::dlnorm(newgamma, std::log(oldgamma), jump_gamma, 1) ;
+    if(pi == 1){
+      num += R::dlnorm(newgamma, pr_slab_mean, pr_slab_sd, 1);
+      den += R::dlnorm(oldgamma, pr_slab_mean, pr_slab_sd, 1);
+    }
+    else{
+      num += R::dlnorm(newgamma, pr_spike_mean, pr_spike_sd, 1);
+      den += R::dlnorm(oldgamma, pr_spike_mean, pr_spike_sd, 1);
+    }
+    ratio = num - den;
+
+    if(ratio > 0.0) accept = 1;
+    else{
+      un = R::runif(0,1);
+      if(std::log(un) < ratio) accept = 1;
+      else accept = 0;
+    }
+
+    if(accept == 1){
+      oldgamma = newgamma;
+      accept_gamma += 1.0 / (niter * 1.0);
+    }
+    else newgamma = oldgamma;
+         * */
+        /* xi update */
+    //pi update(spike slab parameter)
+
+    /* pi_prob  = xi * R::dlnorm(oldgamma, pr_slab_mean, pr_slab_sd, 0); */
+    /* pi_prob /= (1.0 - xi) * R::dlnorm(oldgamma, pr_spike_mean, pr_spike_sd, 0) + xi * R::dlnorm(oldgamma, pr_slab_mean, pr_slab_sd, 0); */
+    /* pi = R::rbinom(1, pi_prob); */
+
+    /* // xi update(spike slab parameter) */
+    /* xi = R::rbeta(pr_beta_a + pi, pr_beta_b + 1.0 - pi); */
+      }
+
       if (iter % print == 0)
         for (i = 1; i <= nITEM; i++) {
           printf("%.5d-GAMMA, VARPHI, ITEM%.2d: ", iter, i);
@@ -1003,6 +1096,10 @@ int main(int argc, const char *argv[]) {
         for (i = 1; i <= nSCHOOL; i++) {
           sample_sigma[gcount][i] = sqrt(oldsigma[i]);
           fprintf(HUR, "%.4f ", sample_sigma[gcount][i]);
+          sample_eta[gcount][i] = oldeta[i];
+          fprintf(FMS, "%.4f ", sample_eta[gcount][i]);
+          sample_xi[gcount][i] = oldxi[i];
+          fprintf(FMS, "%.4f ", sample_xi[gcount][i]);
         }
         for (k = 1; k <= nSCHOOL; k++)
           for (i = 1; i <= nITEM * (nITEM - 1) / 2; i++)
@@ -1038,6 +1135,7 @@ int main(int argc, const char *argv[]) {
         fprintf(JIN, "\n");
         fprintf(PRT, "\n");
         fprintf(JJW, "\n");
+        fprintf(FMS, "\n");
       }
     }
     fclose(HUR);
@@ -1046,6 +1144,7 @@ int main(int argc, const char *argv[]) {
     fclose(JIN);
     fclose(PRT);
     fclose(JJW);
+    fclose(FMS);
 
     frname[0] = 'R';
     frname[1] = 'E';

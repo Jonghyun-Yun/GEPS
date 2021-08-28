@@ -28,6 +28,13 @@ static double pr_mean_Z = 0.0, pr_var_Z;
 static double pr_mean_mu = 0.0, pr_var_mu = 10.0;
 static double pr_mean_delta = 0.0, pr_var_delta = 10.0;
 static double pr_mean_gamma = 0.0, pr_var_gamma = 10.0;
+static double *oldeta, *neweta;
+static double *oldxi;
+
+static double jump_eta;
+static double pr_spike_mean = -3.0, pr_spike_sd = 1.0;
+static double pr_slab_mean = 0.5, pr_slab_sd = 1.0;
+static double pr_xi_a = 1.0, pr_xi_b = 1.0;
 
 // NOTE: type alias YEWON to give a name to 'struct'. defining struct, not declaring
 // https://stackoverflow.com/questions/17720223/c-typedef-struct-name-vs-typedef-struct-name
