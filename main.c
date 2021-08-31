@@ -4,6 +4,9 @@
 #include "FILE/fun_stat.c"
 #include "cost.c"
 
+// TODO: 1) use parameter in (8) for (7) oldmu, oldsigma -> olddelta, oldtau
+// 2) no sigma update when DO_MS = 1
+// 3) disallocate param in (7) from SCHOOL
 int main(int argc, const char * argv[]) {
   /// Declare Variables
   FILE *inp, *JIN, *HUR, *OUT, *PRT, *JYW, *ASA, *IMS, *JJW;
@@ -981,6 +984,8 @@ int main(int argc, const char * argv[]) {
 
       // dist mat var, Eq (7), update
 #pragma omp parallel for private(i, j, k, post_a, post_b) default(shared)
+      if (DO_MS == 0) {
+        // no variance update (7) if model selection in on
       for (k = 1; k <= nSCHOOL; k++) {
         post_a = prior_a;
         post_b = prior_b;
@@ -1000,6 +1005,7 @@ int main(int argc, const char * argv[]) {
           }
         oldsigma[k] =
             1.0 / Rgamma(post_a, post_b); // Change Array of Variables oldsigma
+      }
       }
 
       for (i = 2; i <= nITEM; i++)
