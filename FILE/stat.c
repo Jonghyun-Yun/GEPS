@@ -1,3 +1,6 @@
+#ifndef __STAT_H_
+#define __STAT_H_
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -1090,3 +1093,6 @@ int nrl,nrh,ncl,nch;
 {
 	free((char*) (b+nrl));
 }
+
+
+#endif // __STAT_H_
