@@ -4,9 +4,6 @@
 #include "FILE/fun_stat.c"
 #include "cost.c"
 
-// TODO: 1) use parameter in (8) for (7) oldmu, oldsigma -> olddelta, oldtau
-// 2) no sigma update when DO_MS = 1
-// 3) disallocate param in (7) from SCHOOL
 int main(int argc, const char * argv[]) {
   /// Declare Variables
   FILE *inp, *JIN, *HUR, *OUT, *PRT, *JYW, *ASA, *IMS, *JJW;
@@ -551,9 +548,10 @@ int main(int argc, const char * argv[]) {
         // NOTE: mu for each school?? == delta in (7)
         oldmu[i][j] = -1.5 + 3.0 * rand() / RAND_MAX;
     }
-    for (i = 1; i <= nSCHOOL; i++)
+    for (i = 1; i <= nSCHOOL; i++) {
       // variance in (7)
-      oldsigma[i] = 100.0;
+      oldsigma[i] = fixed_oldsigma;
+    }
     for (i = 1; i <= nITEM; i++) {
       oldgamma[i] = -1.5 + 3.0 * rand() / RAND_MAX;
       // NOTE: what's varphi? sigma_i in (6)

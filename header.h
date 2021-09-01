@@ -8,7 +8,7 @@
 #define nSCHOOL  62
 #define nDIM      2
 #define nCOV      2 // not used
-#define nMAX     81 // NOTE: nMAX?
+#define nMAX     81 // NOTE: nMAX? max(# of student) over school
 
 static int **dataset;
 static int totalsize, MM;
@@ -32,10 +32,14 @@ static double pr_mean_gamma = 0.0, pr_var_gamma = 10.0;
 static double *oldeta, *neweta;
 static double *oldeta_or_one;
 static double *xi, *pi, *pi_prob;
-static double jump_eta;
 static double pr_spike_mean = -3.0, pr_spike_sd = 1.0;
 static double pr_slab_mean = 0.5, pr_slab_sd = 1.0;
 static double pr_beta_a = 1.0, pr_beta_b = 1.0;
+// fixed value of oldsigma when DO_MS = 1
+// the same value is used to init oldsigma (even when DO_MS = 0)
+static double fixed_oldsigma = 100.0;
+// last line of parameter.txt
+static double jump_eta;
 
 // NOTE: type alias YEWON to give a name to 'struct'. defining struct, not declaring
 // https://stackoverflow.com/questions/17720223/c-typedef-struct-name-vs-typedef-struct-name
