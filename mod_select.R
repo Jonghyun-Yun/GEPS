@@ -8,6 +8,7 @@ library(coda)
 library(bayesplot)
 library(ggplot2)
 sim_ms  = readr::read_delim("RESULT/sim_e1.log", delim=" ",  col_names=FALSE)
+if (all(is.na(sim_ms[, ncol(sim_ms)]))) sim_ms[, ncol(sim_ms)] = NULL
 if (ncol(sim_ms) %% 3 != 0)
   stop("the # of columns are not a multiple of 3.")
 

@@ -38,7 +38,7 @@ static double pr_beta_a = 1.0, pr_beta_b = 1.0;
 // fixed value of oldsigma when DO_MS = 1
 // the same value is used to init oldsigma (even when DO_MS = 0)
 static double fixed_oldsigma = 100.0;
-// last line of parameter.txt
+// to be read from the last line of parameter.txt
 static double jump_eta;
 
 // NOTE: type alias YEWON to give a name to 'struct'. defining struct, not declaring
