@@ -38,7 +38,9 @@ int main(int argc, const char * argv[]) {
 
   // instead, do
   // export OMP_NUM_THREADS=4
-  // use gcc-11
+  // computation time got halved with OMP_NUM_THREADS=4
+  // for compile use (don't use clang)
+  // gcc-11 main.c -o main -fopenmp
 
   /* model selection */
   int DO_MS = atoi(argv[2]);
@@ -864,6 +866,7 @@ int main(int argc, const char * argv[]) {
         // NOTE: person position var (Eq 5)
         SCHOOL[a].oldsigma = 1.0 / Rgamma(SCHOOL[a].post_a, SCHOOL[a].post_b);
 
+
 // 2. Update $\beta_i$ from the proposal distribution $\phi_2(\cdot)$
 #pragma omp parallel for private(i, j, k, old_like_beta, new_like_beta, num,   \
                                  den, accept, ratio, un) default(shared)
@@ -982,28 +985,30 @@ int main(int argc, const char * argv[]) {
 
       // dist mat var, Eq (7), update
 #pragma omp parallel for private(i, j, k, post_a, post_b) default(shared)
-      if (DO_MS == 0) {
-        // no variance update (7) if model selection in on
       for (k = 1; k <= nSCHOOL; k++) {
-        post_a = prior_a;
-        post_b = prior_b;
-        for (i = 2; i <= nITEM; i++)
-          for (j = 1; j < i; j++) {
-            post_a += 0.5;
-            if (SCHOOL[k].old_item_mat[i][j] > 0.0001)
-              post_b += 0.5 *
-                        (log(SCHOOL[k].old_item_mat[i][j]) -
-                         oldmu[((i - 1) * (i - 2) / 2 + j)][k]) *
-                        (log(SCHOOL[k].old_item_mat[i][j]) -
-                         oldmu[((i - 1) * (i - 2) / 2 + j)][k]);
-            else
-              post_b += 0.5 *
-                        (log(0.0001) - oldmu[((i - 1) * (i - 2) / 2 + j)][k]) *
-                        (log(0.0001) - oldmu[((i - 1) * (i - 2) / 2 + j)][k]);
-          }
-        oldsigma[k] =
-            1.0 / Rgamma(post_a, post_b); // Change Array of Variables oldsigma
-      }
+        if (DO_MS == 0) {
+          // no variance update (7) if model selection in on
+          post_a = prior_a;
+          post_b = prior_b;
+          for (i = 2; i <= nITEM; i++)
+            for (j = 1; j < i; j++) {
+              post_a += 0.5;
+              if (SCHOOL[k].old_item_mat[i][j] > 0.0001)
+                post_b += 0.5 *
+                          (log(SCHOOL[k].old_item_mat[i][j]) -
+                           oldmu[((i - 1) * (i - 2) / 2 + j)][k]) *
+                          (log(SCHOOL[k].old_item_mat[i][j]) -
+                           oldmu[((i - 1) * (i - 2) / 2 + j)][k]);
+              else
+                post_b +=
+                    0.5 *
+                    (log(0.0001) - oldmu[((i - 1) * (i - 2) / 2 + j)][k]) *
+                    (log(0.0001) - oldmu[((i - 1) * (i - 2) / 2 + j)][k]);
+            }
+          oldsigma[k] =
+              1.0 /
+              Rgamma(post_a, post_b); // Change Array of Variables oldsigma
+        }
       }
 
       for (i = 2; i <= nITEM; i++)
@@ -1125,12 +1130,16 @@ int main(int argc, const char * argv[]) {
               xi[a] * exp(lognormal_lpdf(oldeta[a], pr_slab_mean, pr_slab_sd));
           pi_prob[a] /=
               (1.0 - xi[a]) *
-            exp(lognormal_lpdf(oldeta[a], pr_spike_mean, pr_spike_sd)) +
-                xi[a] *
-                exp(lognormal_lpdf(oldeta[a] , pr_slab_mean, pr_slab_sd));
-        pi[a] = bernoulli_rng(pi_prob[a]);
+                  exp(lognormal_lpdf(oldeta[a], pr_spike_mean, pr_spike_sd)) +
+              xi[a] * exp(lognormal_lpdf(oldeta[a], pr_slab_mean, pr_slab_sd));
+          pi[a] = bernoulli_rng(pi_prob[a]);
 
           // xi[a] update(spi[a]ke slab parameter)
+          /* printf("%.4f\n", pi[a]); */
+          /* printf("%.4f\n", pr_beta_a + pi[a]); */
+          /* printf("%.4f\n",  pr_beta_b + 1.0 - pi[a]); */
+          // FIXME: Gamma parameter error (<0.0)
+          // only during parallelization
           xi[a] = beta_rng(pr_beta_a + pi[a], pr_beta_b + 1.0 - pi[a]);
         }
       }
