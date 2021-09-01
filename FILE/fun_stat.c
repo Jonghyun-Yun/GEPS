@@ -3,13 +3,13 @@
 /* Generate a random variable from Beta(a,b) */
 double beta_rng(double a, double b)
 {
-   if (a < 0 || b < 0) {
+   if (a < 0.0 || b < 0.0) {
       fprintf(stderr, "error: beta parameter(s) is negative! Exiting...\n");
       exit(-1);
     }
   double ga, gb;
-  ga = Rgamma(a, 1);
-  gb = Rgamma(b, 1);
+  ga = Rgamma(a, 1.0);
+  gb = Rgamma(b, 1.0);
   return ga / (ga + gb);
 }
 
