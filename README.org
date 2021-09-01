@@ -1,0 +1,102 @@
+#+STARTUP: overview inlineimages logdone noindent
+
+#+include: ~/org/OSX.org::CMakeLists
+#+include: ~/org/OSX.org::compile_commands
+
+* Getting started...
+* CMake
+  The below is a CMake build script.
+  Save the script as ~CMakeLists.txt~.
+
+  #+begin_src cmake :tangle CMakeLists.txt
+  cmake_minimum_required(VERSION 3.0)
+  project(GEPS)
+
+  set(PROJROOT .)
+
+  # set(CMAKE_BUILD_TYPE Debug)
+  set(CMAKE_CXX_FLAGS_DEBUG "-g")
+  set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+
+  # set(CMAKE_CXX_STANDARD 11)
+  # set(CMAKE_CXX_STANDARD 14)
+
+  # c++ linker
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
+
+  add_executable(main main.c ${SOURCES})
+ #+end_src
+
+* Generate =compile_commands.json= using CMAKE
+  This is for compiling with the -g flag for debugging. If you are not using ~gdb~, please ignore this part.
+  The executable will be compiled in a ~Debug~ directory.
+#+begin_src sh
+rm -r CMakeFiles/ Debug/ cmake_install.cmake CMakeCache.txt Makefile compile_commands.json
+# export CXX="/usr/local/opt/llvm/bin/clang++"
+# export CC="/usr/local/opt/llvm/bin/clang"
+cmake -H. -BDebug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=YES
+ln -s Debug/compile_commands.json
+#+end_src
+
+#+RESULTS:
+| -- | The         | C     | compiler | identification | is        | AppleClang                                                                                 | 11.0.0.11000033                                  |         |
+| -- | The         | CXX   | compiler | identification | is        | AppleClang                                                                                 | 11.0.0.11000033                                  |         |
+| -- | Detecting   | C     | compiler | ABI            | info      |                                                                                            |                                                  |         |
+| -- | Detecting   | C     | compiler | ABI            | info      | -                                                                                          | done                                             |         |
+| -- | Check       | for   | working  | C              | compiler: | /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc  | -                                                | skipped |
+| -- | Detecting   | C     | compile  | features       |           |                                                                                            |                                                  |         |
+| -- | Detecting   | C     | compile  | features       | -         | done                                                                                       |                                                  |         |
+| -- | Detecting   | CXX   | compiler | ABI            | info      |                                                                                            |                                                  |         |
+| -- | Detecting   | CXX   | compiler | ABI            | info      | -                                                                                          | done                                             |         |
+| -- | Check       | for   | working  | CXX            | compiler: | /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ | -                                                | skipped |
+| -- | Detecting   | CXX   | compile  | features       |           |                                                                                            |                                                  |         |
+| -- | Detecting   | CXX   | compile  | features       | -         | done                                                                                       |                                                  |         |
+| -- | Configuring | done  |          |                |           |                                                                                            |                                                  |         |
+| -- | Generating  | done  |          |                |           |                                                                                            |                                                  |         |
+| -- | Build       | files | have     | been           | written   | to:                                                                                        | /Users/yunj/Dropbox/research/hnet-irt/GEPS/Debug |         |
+
+* To use GDB dor debugging
+  MakeFile in a project root doesn't build main with debugging flag (-g). Instead, use one in Debug (folder).
+  https://cs.baylor.edu/~donahoo/tools/gdb/tutorial.html
+  #+BEGIN_SRC sh
+  cd Debug
+  make
+  cd ..
+  gbd --args ./Debug/main 1 1
+  #+END_SRC
+
+* Debug: LLDB
+This uses ~dap-mode~ in GNU Emacs.
+  #+begin_src emacs-lisp :results none
+(dap-register-debug-template
+   "LLDB::GEPS-main"
+  (list :type "lldb"
+        :request "launch"
+        :name "LLDB::diprom-main"
+        :arguments "1 1"
+        :target "/Users/yunj/Dropbox/research/hnet-irt/GEPS/Debug/main"
+        :cwd "/Users/yunj/Dropbox/research/hnet-irt/GEPS"
+        ))
+  #+end_src
+
+* Check if CCLS works
+To see if ccls works:
+#+BEGIN_SRC sh :async
+rm -rf .ccls-cache
+ccls --index=. -v=3
+#+END_SRC
+
+#+RESULTS:
+
+Prevent Dropbox from syncing a large cache folder:
+#+BEGIN_SRC sh
+mkdir -p ~/workspace/cache/lsjm-code
+mv .ccls-cache ~/workspace/cache/lsjm-code/
+ln -s ~/workspace/cache/lsjm-code/.ccls-cache
+#+END_SRC
+
+#+BEGIN_SRC sh
+mkdir -p ~/workspace/cache/art
+mv .ccls-cache ~/workspace/cache/art/
+ln -s ~/workspace/cache/art/.ccls-cache
+#+END_SRC
